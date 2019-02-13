@@ -2,7 +2,7 @@ version: '3'
 
 services:
   nginx:
-    image: nginx:1.14-alpine
+    image: nginx:1.15-alpine
     ports:
       - "80:80"
     volumes:
@@ -21,14 +21,14 @@ services:
     volumes:
       - ./:/var/www
     links:
-      - db
+      - mysql
       - redis
     depends_on:
-      - db
+      - mysql
 
-  db:
+  mysql:
     image: mysql:5.6
-    hostname: db
+    hostname: mysql
     environment:
       - "MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}"
       - "MYSQL_DATABASE=${DB_DATABASE}"
@@ -47,12 +47,28 @@ services:
     volumes:
       - ./:/var/www
     links:
-      - db
+      - mysql
     working_dir: /var/www
     command: bash -c "apt-get update && docker-php-ext-install pdo_mysql && php artisan queue:work redis --sleep=1 --tries=1"
     depends_on:
       - php
     restart: always
+
+
+  #frontend:
+  #  image: node:8-alpine
+  #  hostname: frontend
+  #  ports:
+  #    - "8088:8088"
+  #  volumes:
+  #    - ./laravel-echo-server.json:/usr/src/app/laravel-echo-server.json
+  #    - ./:/var/www
+  #  working_dir: /usr/src/app
+  #  command: bash -c "npm install -g laravel-echo-server && /usr/local/lib/node_modules/laravel-echo-server/bin/server.js start"
+  #  depends_on:
+  #    - redis
+  #  restart: always
+
 
   laravel_echo_server:
     image: node:boron
